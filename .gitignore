@@ -38,3 +38,8 @@
 /cmd/api/config
 /.DS_Store
 /cmd/.DS_Store
+/.tools/
+/bin/
+/config/local.yml
+/.runtime/
+/config/keys/

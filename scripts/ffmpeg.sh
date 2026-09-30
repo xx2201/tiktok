@@ -1,1 +1,0 @@
-sudo apt-get install ffmpeg && go get -u github.com/u2takey/ffmpeg-go && go get -u github.com/disintegration/imaging

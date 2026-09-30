@@ -1,0 +1,9 @@
+.git
+.ua
+.tools
+.runtime
+bin
+config/keys
+config/local.yml
+logs
+pic

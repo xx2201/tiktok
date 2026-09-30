@@ -1,1 +1,0 @@
-go run ../../cmd/video/main.go

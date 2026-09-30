@@ -1,87 +1,73 @@
-version: '3'
-
-x-minio-common: &minio-common
-  image: quay.io/minio/minio:v1.0.0
-  command: server --console-address ":9001" http://minio{1...4}/data{1...2}
-  expose:
-    - "9000"
-  environment:
-    MINIO_ROOT_USER: tiktokMinio
-    MINIO_ROOT_PASSWORD: tiktokMinio
-  healthcheck:
-    test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-    interval: 30s
-    timeout: 20s
-    retries: 3
+name: tiktok-kratos-dev
 
 services:
-  Etcd:
-    image: 'bitnami/etcd:v1.0.0'
+  mysql:
+    image: mysql:8.0
     environment:
-      - ALLOW_NONE_AUTHENTICATION=yes
-    ports:
-      - 2379:2380
+      MYSQL_DATABASE: db_tiktok
+      MYSQL_USER: tiktokDB
+      MYSQL_PASSWORD: tiktokDB
+      MYSQL_ROOT_PASSWORD: local-root-only
+    ports: ["127.0.0.1:3309:3306"]
+    volumes: ["mysql-data:/var/lib/mysql"]
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+  redis:
+    image: redis:7.4-alpine
+    command: ["redis-server", "--requirepass", "tiktokRedis", "--appendonly", "yes", "--appendfsync", "always"]
+    ports: ["127.0.0.1:6379:6379"]
+    volumes: ["redis-data:/data"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "tiktokRedis", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+  rabbitmq:
+    image: rabbitmq:4.1-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: tiktokRMQ
+      RABBITMQ_DEFAULT_PASS: tiktokRMQ
+      RABBITMQ_DEFAULT_VHOST: tiktokRMQ
+    ports: ["127.0.0.1:5672:5672", "127.0.0.1:15672:15672"]
+    volumes: ["rabbitmq-data:/var/lib/rabbitmq"]
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+  etcd:
+    image: registry.k8s.io/etcd:3.5.21-0
+    command: ["etcd", "--name", "local", "--data-dir", "/etcd-data", "--listen-client-urls", "http://0.0.0.0:2379", "--advertise-client-urls", "http://etcd:2379"]
+    ports: ["127.0.0.1:2379:2379"]
+    volumes: ["etcd-data:/etcd-data"]
+    healthcheck:
+      test: ["CMD", "etcdctl", "endpoint", "health"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+  minio:
+    build:
+      context: .
+      dockerfile: dockerfiles/minio.Dockerfile
+    image: tiktok-kratos-minio:2025-10-15
+    command: server /data --console-address :9001
+    environment:
+      MINIO_ROOT_USER: tiktokMinio
+      MINIO_ROOT_PASSWORD: tiktokMinio
+    ports: ["127.0.0.1:9000:9000", "127.0.0.1:9001:9001"]
+    volumes: ["minio-data:/data"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
 
-  dousheng-api:
-    image: '1.12.68.184:5000/dousheng-api-hertz:v1.0.0'
-    volumes:
-      - type: bind
-        source: ./config
-        target: /app/config
-    ports:
-      - 8089:8089
-      - 8081:8081
-      - 8082:8082
-      - 8083:8083
-      - 8084:8084
-      - 8085:8085
-      - 8086:8086
-
-  dousheng-rpc-commentsrv:
-    image: '1.12.68.184:5000/dousheng-rpc-commentsrv:v1.0.0'
-    network_mode: 'service:dousheng-api'
-    volumes:
-      - type: bind
-        source: ./config
-        target: /app/config
-
-  dousheng-rpc-messagesrv:
-    image: '1.12.68.184:5000/dousheng-rpc-messagesrv:v1.0.0'
-    network_mode: 'service:dousheng-api'
-    volumes:
-      - type: bind
-        source: ./config
-        target: /app/config
-
-  dousheng-rpc-relationsrv:
-    image: '1.12.68.184:5000/dousheng-rpc-relationsrv:v1.0.0'
-    network_mode: 'service:dousheng-api'
-    volumes:
-      - type: bind
-        source: ./config
-        target: /app/config
-
-  dousheng-rpc-videosrv:
-    image: '1.12.68.184:5000/dousheng-rpc-videosrv:v1.0.0'
-    network_mode: 'service:dousheng-api'
-    volumes:
-      - type: bind
-        source: ./config
-        target: /app/config
-
-  dousheng-rpc-usersrv:
-    image: '1.12.68.184:5000/dousheng-rpc-usersrv:v1.0.0'
-    network_mode: 'service:dousheng-api'
-    volumes:
-      - type: bind
-        source: ./config
-        target: /app/config
-
-  dousheng-rpc-favoritesrv:
-    image: '1.12.68.184:5000/dousheng-rpc-favoritesrv:v1.0.0'
-
-    network_mode: 'service:dousheng-api'
-    volumes:
-      - type: bind
-        source: ./config
-        target: /app/config
+volumes:
+  mysql-data:
+  redis-data:
+  rabbitmq-data:
+  etcd-data:
+  minio-data:

@@ -1,25 +1,17 @@
-session_name=dousheng
-
-tmux has-session -t $session_name
-if [ $? != 0 ];then
-    path_to_scrpit=scripts/microservice
-    cd $path_to_scrpit
-
-    tmux new-session -s $session_name -n comment -d
-    tmux send-keys -t $session_name 'sh comment.sh' C-m
-    tmux new-window -n favorite -t $session_name
-    tmux send-keys -t $session_name:1 'sh favorite.sh' C-m
-    tmux new-window -n message -t $session_name
-    tmux send-keys -t $session_name:2 'sh message.sh' C-m
-    tmux new-window -n relation -t $session_name
-    tmux send-keys -t $session_name:3 'sh relation.sh' C-m
-    tmux new-window -n user -t $session_name
-    tmux send-keys -t $session_name:4 'sh user.sh' C-m
-    tmux new-window -n video -t $session_name
-    tmux send-keys -t $session_name:5 'sh video.sh' C-m
-    tmux new-window -n api -t $session_name
-    tmux send-keys -t $session_name:6 'sh api.sh' C-m
-    tmux select-window -t $session_name:6
-fi
-tmux attach -t dousheng
-echo "tmux has started."
+#!/usr/bin/env sh
+set -eu
+cd "$(dirname "$0")"
+mkdir -p bin .runtime
+for service in user video favorite comment relation message api; do
+  if [ -f ".runtime/$service.pid" ]; then
+    pid="$(cat ".runtime/$service.pid")"
+    case "$pid" in ''|*[!0-9]*) echo "Invalid pid for $service" >&2; exit 1;; esac
+    if [ -e "/proc/$pid/exe" ] && [ "$(readlink "/proc/$pid/exe")" = "$(pwd)/bin/$service" ]; then
+      echo "$service is already running" >&2
+      exit 1
+    fi
+  fi
+  go build -o "bin/$service" "./cmd/$service"
+  "./bin/$service" -config "config/kratos.yml" >".runtime/$service.log" 2>&1 &
+  echo "$!" >".runtime/$service.pid"
+done
