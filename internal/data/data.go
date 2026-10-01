@@ -47,7 +47,7 @@ func (d *Data) Close() error {
 }
 func (d *Data) Migrate() error {
 	// 显式命令执行迁移，启动服务不会自动修改数据库结构。
-	return d.db.AutoMigrate(&User{}, &Video{}, &Comment{}, &FavoriteVideoRelation{}, &FollowRelation{}, &Message{}, &InteractionState{})
+	return d.db.AutoMigrate(&User{}, &Video{}, &Comment{}, &FavoriteVideoRelation{}, &FollowRelation{}, &Message{}, &InteractionState{}, &Bookmark{})
 }
 func missing(err error) error {
 	if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -63,6 +63,9 @@ func writeError(err error) error {
 }
 func (d *Data) query(ctx context.Context) *gorm.DB   { return d.db.WithContext(ctx) }
 func (d *Data) primary(ctx context.Context) *gorm.DB { return d.query(ctx).Clauses(dbresolver.Write) }
+
+// 复用连接池，为需要提交后立即可读的业务提供主库读取视图。
+func (d *Data) Primary() *Data { return &Data{db: d.db.Clauses(dbresolver.Write)} }
 
 func asUser(u *User) *biz.User {
 	return &biz.User{ID: int64(u.ID), Name: u.UserName, Password: u.Password, Avatar: u.Avatar, BackgroundImage: u.BackgroundImage, Signature: u.Signature, FollowCount: int64(u.FollowingCount), FollowerCount: int64(u.FollowerCount), WorkCount: int64(u.WorkCount), FavoriteCount: int64(u.FavoriteCount), TotalFavorited: int64(u.TotalFavorited)}

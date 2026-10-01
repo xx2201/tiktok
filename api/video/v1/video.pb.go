@@ -477,6 +477,255 @@ func (x *PublishListResponse) GetVideoList() []*Video {
 	return nil
 }
 
+// 私人收藏使用 token 中的用户身份，列表没有 user_id 参数。
+type BookmarkActionRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Token         string                 `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
+	VideoId       int64                  `protobuf:"varint,2,opt,name=video_id,json=videoId,proto3" json:"video_id,omitempty"`
+	ActionType    int32                  `protobuf:"varint,3,opt,name=action_type,json=actionType,proto3" json:"action_type,omitempty"` // 1 收藏，2 取消
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BookmarkActionRequest) Reset() {
+	*x = BookmarkActionRequest{}
+	mi := &file_api_video_v1_video_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BookmarkActionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BookmarkActionRequest) ProtoMessage() {}
+
+func (x *BookmarkActionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_video_v1_video_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BookmarkActionRequest.ProtoReflect.Descriptor instead.
+func (*BookmarkActionRequest) Descriptor() ([]byte, []int) {
+	return file_api_video_v1_video_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *BookmarkActionRequest) GetToken() string {
+	if x != nil {
+		return x.Token
+	}
+	return ""
+}
+
+func (x *BookmarkActionRequest) GetVideoId() int64 {
+	if x != nil {
+		return x.VideoId
+	}
+	return 0
+}
+
+func (x *BookmarkActionRequest) GetActionType() int32 {
+	if x != nil {
+		return x.ActionType
+	}
+	return 0
+}
+
+type BookmarkActionResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	StatusCode    int32                  `protobuf:"varint,1,opt,name=status_code,json=statusCode,proto3" json:"status_code,omitempty"`
+	StatusMsg     string                 `protobuf:"bytes,2,opt,name=status_msg,json=statusMsg,proto3" json:"status_msg,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BookmarkActionResponse) Reset() {
+	*x = BookmarkActionResponse{}
+	mi := &file_api_video_v1_video_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BookmarkActionResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BookmarkActionResponse) ProtoMessage() {}
+
+func (x *BookmarkActionResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_video_v1_video_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BookmarkActionResponse.ProtoReflect.Descriptor instead.
+func (*BookmarkActionResponse) Descriptor() ([]byte, []int) {
+	return file_api_video_v1_video_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *BookmarkActionResponse) GetStatusCode() int32 {
+	if x != nil {
+		return x.StatusCode
+	}
+	return 0
+}
+
+func (x *BookmarkActionResponse) GetStatusMsg() string {
+	if x != nil {
+		return x.StatusMsg
+	}
+	return ""
+}
+
+type BookmarkListRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Token         string                 `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
+	Cursor        int64                  `protobuf:"varint,2,opt,name=cursor,proto3" json:"cursor,omitempty"` // 收藏记录 ID，0 表示首屏
+	Limit         int32                  `protobuf:"varint,3,opt,name=limit,proto3" json:"limit,omitempty"`   // 0 默认20，最大50
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BookmarkListRequest) Reset() {
+	*x = BookmarkListRequest{}
+	mi := &file_api_video_v1_video_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BookmarkListRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BookmarkListRequest) ProtoMessage() {}
+
+func (x *BookmarkListRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_video_v1_video_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BookmarkListRequest.ProtoReflect.Descriptor instead.
+func (*BookmarkListRequest) Descriptor() ([]byte, []int) {
+	return file_api_video_v1_video_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *BookmarkListRequest) GetToken() string {
+	if x != nil {
+		return x.Token
+	}
+	return ""
+}
+
+func (x *BookmarkListRequest) GetCursor() int64 {
+	if x != nil {
+		return x.Cursor
+	}
+	return 0
+}
+
+func (x *BookmarkListRequest) GetLimit() int32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+type BookmarkListResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	StatusCode    int32                  `protobuf:"varint,1,opt,name=status_code,json=statusCode,proto3" json:"status_code,omitempty"`
+	StatusMsg     string                 `protobuf:"bytes,2,opt,name=status_msg,json=statusMsg,proto3" json:"status_msg,omitempty"`
+	VideoList     []*Video               `protobuf:"bytes,3,rep,name=video_list,json=videoList,proto3" json:"video_list,omitempty"`
+	NextCursor    int64                  `protobuf:"varint,4,opt,name=next_cursor,json=nextCursor,proto3" json:"next_cursor,omitempty"`
+	HasMore       bool                   `protobuf:"varint,5,opt,name=has_more,json=hasMore,proto3" json:"has_more,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BookmarkListResponse) Reset() {
+	*x = BookmarkListResponse{}
+	mi := &file_api_video_v1_video_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BookmarkListResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BookmarkListResponse) ProtoMessage() {}
+
+func (x *BookmarkListResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_video_v1_video_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BookmarkListResponse.ProtoReflect.Descriptor instead.
+func (*BookmarkListResponse) Descriptor() ([]byte, []int) {
+	return file_api_video_v1_video_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *BookmarkListResponse) GetStatusCode() int32 {
+	if x != nil {
+		return x.StatusCode
+	}
+	return 0
+}
+
+func (x *BookmarkListResponse) GetStatusMsg() string {
+	if x != nil {
+		return x.StatusMsg
+	}
+	return ""
+}
+
+func (x *BookmarkListResponse) GetVideoList() []*Video {
+	if x != nil {
+		return x.VideoList
+	}
+	return nil
+}
+
+func (x *BookmarkListResponse) GetNextCursor() int64 {
+	if x != nil {
+		return x.NextCursor
+	}
+	return 0
+}
+
+func (x *BookmarkListResponse) GetHasMore() bool {
+	if x != nil {
+		return x.HasMore
+	}
+	return false
+}
+
 var File_api_video_v1_video_proto protoreflect.FileDescriptor
 
 const file_api_video_v1_video_proto_rawDesc = "" +
@@ -524,11 +773,37 @@ const file_api_video_v1_video_proto_rawDesc = "" +
 	"\n" +
 	"status_msg\x18\x02 \x01(\tR\tstatusMsg\x12.\n" +
 	"\n" +
-	"video_list\x18\x03 \x03(\v2\x0f.video.v1.VideoR\tvideoList2\xe3\x01\n" +
+	"video_list\x18\x03 \x03(\v2\x0f.video.v1.VideoR\tvideoList\"i\n" +
+	"\x15BookmarkActionRequest\x12\x14\n" +
+	"\x05token\x18\x01 \x01(\tR\x05token\x12\x19\n" +
+	"\bvideo_id\x18\x02 \x01(\x03R\avideoId\x12\x1f\n" +
+	"\vaction_type\x18\x03 \x01(\x05R\n" +
+	"actionType\"X\n" +
+	"\x16BookmarkActionResponse\x12\x1f\n" +
+	"\vstatus_code\x18\x01 \x01(\x05R\n" +
+	"statusCode\x12\x1d\n" +
+	"\n" +
+	"status_msg\x18\x02 \x01(\tR\tstatusMsg\"Y\n" +
+	"\x13BookmarkListRequest\x12\x14\n" +
+	"\x05token\x18\x01 \x01(\tR\x05token\x12\x16\n" +
+	"\x06cursor\x18\x02 \x01(\x03R\x06cursor\x12\x14\n" +
+	"\x05limit\x18\x03 \x01(\x05R\x05limit\"\xc2\x01\n" +
+	"\x14BookmarkListResponse\x12\x1f\n" +
+	"\vstatus_code\x18\x01 \x01(\x05R\n" +
+	"statusCode\x12\x1d\n" +
+	"\n" +
+	"status_msg\x18\x02 \x01(\tR\tstatusMsg\x12.\n" +
+	"\n" +
+	"video_list\x18\x03 \x03(\v2\x0f.video.v1.VideoR\tvideoList\x12\x1f\n" +
+	"\vnext_cursor\x18\x04 \x01(\x03R\n" +
+	"nextCursor\x12\x19\n" +
+	"\bhas_more\x18\x05 \x01(\bR\ahasMore2\x87\x03\n" +
 	"\fVideoService\x125\n" +
 	"\x04Feed\x12\x15.video.v1.FeedRequest\x1a\x16.video.v1.FeedResponse\x12P\n" +
 	"\rPublishAction\x12\x1e.video.v1.PublishActionRequest\x1a\x1f.video.v1.PublishActionResponse\x12J\n" +
-	"\vPublishList\x12\x1c.video.v1.PublishListRequest\x1a\x1d.video.v1.PublishListResponseB?Z=github.com/bytedance-youthcamp-jbzx/tiktok/api/video/v1;videob\x06proto3"
+	"\vPublishList\x12\x1c.video.v1.PublishListRequest\x1a\x1d.video.v1.PublishListResponse\x12S\n" +
+	"\x0eBookmarkAction\x12\x1f.video.v1.BookmarkActionRequest\x1a .video.v1.BookmarkActionResponse\x12M\n" +
+	"\fBookmarkList\x12\x1d.video.v1.BookmarkListRequest\x1a\x1e.video.v1.BookmarkListResponseB?Z=github.com/bytedance-youthcamp-jbzx/tiktok/api/video/v1;videob\x06proto3"
 
 var (
 	file_api_video_v1_video_proto_rawDescOnce sync.Once
@@ -542,32 +817,41 @@ func file_api_video_v1_video_proto_rawDescGZIP() []byte {
 	return file_api_video_v1_video_proto_rawDescData
 }
 
-var file_api_video_v1_video_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_api_video_v1_video_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_api_video_v1_video_proto_goTypes = []any{
-	(*Video)(nil),                 // 0: video.v1.Video
-	(*FeedRequest)(nil),           // 1: video.v1.FeedRequest
-	(*FeedResponse)(nil),          // 2: video.v1.FeedResponse
-	(*PublishActionRequest)(nil),  // 3: video.v1.PublishActionRequest
-	(*PublishActionResponse)(nil), // 4: video.v1.PublishActionResponse
-	(*PublishListRequest)(nil),    // 5: video.v1.PublishListRequest
-	(*PublishListResponse)(nil),   // 6: video.v1.PublishListResponse
-	(*v1.User)(nil),               // 7: user.v1.User
+	(*Video)(nil),                  // 0: video.v1.Video
+	(*FeedRequest)(nil),            // 1: video.v1.FeedRequest
+	(*FeedResponse)(nil),           // 2: video.v1.FeedResponse
+	(*PublishActionRequest)(nil),   // 3: video.v1.PublishActionRequest
+	(*PublishActionResponse)(nil),  // 4: video.v1.PublishActionResponse
+	(*PublishListRequest)(nil),     // 5: video.v1.PublishListRequest
+	(*PublishListResponse)(nil),    // 6: video.v1.PublishListResponse
+	(*BookmarkActionRequest)(nil),  // 7: video.v1.BookmarkActionRequest
+	(*BookmarkActionResponse)(nil), // 8: video.v1.BookmarkActionResponse
+	(*BookmarkListRequest)(nil),    // 9: video.v1.BookmarkListRequest
+	(*BookmarkListResponse)(nil),   // 10: video.v1.BookmarkListResponse
+	(*v1.User)(nil),                // 11: user.v1.User
 }
 var file_api_video_v1_video_proto_depIdxs = []int32{
-	7, // 0: video.v1.Video.author:type_name -> user.v1.User
-	0, // 1: video.v1.FeedResponse.video_list:type_name -> video.v1.Video
-	0, // 2: video.v1.PublishListResponse.video_list:type_name -> video.v1.Video
-	1, // 3: video.v1.VideoService.Feed:input_type -> video.v1.FeedRequest
-	3, // 4: video.v1.VideoService.PublishAction:input_type -> video.v1.PublishActionRequest
-	5, // 5: video.v1.VideoService.PublishList:input_type -> video.v1.PublishListRequest
-	2, // 6: video.v1.VideoService.Feed:output_type -> video.v1.FeedResponse
-	4, // 7: video.v1.VideoService.PublishAction:output_type -> video.v1.PublishActionResponse
-	6, // 8: video.v1.VideoService.PublishList:output_type -> video.v1.PublishListResponse
-	6, // [6:9] is the sub-list for method output_type
-	3, // [3:6] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	11, // 0: video.v1.Video.author:type_name -> user.v1.User
+	0,  // 1: video.v1.FeedResponse.video_list:type_name -> video.v1.Video
+	0,  // 2: video.v1.PublishListResponse.video_list:type_name -> video.v1.Video
+	0,  // 3: video.v1.BookmarkListResponse.video_list:type_name -> video.v1.Video
+	1,  // 4: video.v1.VideoService.Feed:input_type -> video.v1.FeedRequest
+	3,  // 5: video.v1.VideoService.PublishAction:input_type -> video.v1.PublishActionRequest
+	5,  // 6: video.v1.VideoService.PublishList:input_type -> video.v1.PublishListRequest
+	7,  // 7: video.v1.VideoService.BookmarkAction:input_type -> video.v1.BookmarkActionRequest
+	9,  // 8: video.v1.VideoService.BookmarkList:input_type -> video.v1.BookmarkListRequest
+	2,  // 9: video.v1.VideoService.Feed:output_type -> video.v1.FeedResponse
+	4,  // 10: video.v1.VideoService.PublishAction:output_type -> video.v1.PublishActionResponse
+	6,  // 11: video.v1.VideoService.PublishList:output_type -> video.v1.PublishListResponse
+	8,  // 12: video.v1.VideoService.BookmarkAction:output_type -> video.v1.BookmarkActionResponse
+	10, // 13: video.v1.VideoService.BookmarkList:output_type -> video.v1.BookmarkListResponse
+	9,  // [9:14] is the sub-list for method output_type
+	4,  // [4:9] is the sub-list for method input_type
+	4,  // [4:4] is the sub-list for extension type_name
+	4,  // [4:4] is the sub-list for extension extendee
+	0,  // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_api_video_v1_video_proto_init() }
@@ -581,7 +865,7 @@ func file_api_video_v1_video_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_video_v1_video_proto_rawDesc), len(file_api_video_v1_video_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   7,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

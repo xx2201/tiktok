@@ -4,7 +4,7 @@
 
 用户要求：先把整个项目迁移为 Kratos，修复已确认的问题，验证后提交 Git；再选一个真实业务需求，结合需求分析、产品规则、技术方案、任务拆分、开发、测试、验收、发布和反馈讲解完整开发流程。
 
-业务教学阶段必须在迁移提交完成后开始。当前候选需求为「收藏视频，方便以后回看」，其规则和方案届时单独确定。
+迁移已提交为 `17e7447`。随后开展「私人视频收藏」业务练习，规则、方案和代码阅读路线见 [完整业务开发练习](BUSINESS_BOOKMARK.md)。
 
 ## 迁移范围
 
@@ -43,7 +43,13 @@
 - 首轮真实组件验收通过：七个应用通过 etcd 发现，注册登录、FFmpeg 截帧、MinIO 视频/封面读取、点赞/取消、评论权限、双向关注、私信加密及历史/增量读取、视频失败补偿。
 - 真实 MySQL/Redis 验证通过：20 个并发重复动作只计数一次；旧动作不覆盖新状态；写入失败事务回滚并保留 Redis 待写内容；同步清理不删除后来到达的动作。
 - 首轮联调发现请求日志含敏感字段，已用 Kratos 日志过滤器隐藏 args，并去除 FFmpeg 错误中的签名 URL。
-- 复验时 Docker engine、安装目录及 CLI 先后不可见。最新默认媒体初始化与完整组件复验、通用应用 Docker 镜像构建，须恢复 Docker 后确认。首轮结果不构成随后改动的运行证据。
+- 复验曾因 Docker Desktop 启动故障中断。2026-10-01 保留损坏套接字目录后恢复引擎，五个基础设施容器均健康，默认媒体初始化与完整组件复验通过。
+- 复跑暴露测试隔离及清理顺序问题：SQL 已隔离，Redis/MQ 仍共用开发命名空间；Redis 客户端又先于测试清理关闭。已改为 Redis DB 1、独立 RabbitMQ vhost，按正确顺序清理，并将 CAS 测试值移出业务动作键空间。
+- 2026-10-01 真实组件复验：TestCompleteBusinessFlow、TestBookmarkDatabaseRules、TestConcurrentActionIdempotency、TestRedisPendingSurvivesFailureAndNewAction 通过；默认头像、背景图及视频/封面 URL 实际返回 200。
+- 私人收藏新增副本边界验证：空的独立 schema 模拟未追平的读源，复现作者装饰读取导致 404；收藏整条响应链强制主库读取后 TestBookmarkReadAfterWriteWithLaggingReplica 通过。没有搭建或验证实际 MySQL 主从复制。
+- 通用应用 Dockerfile 以 SERVICE=api 构建成功，镜像中的 Linux 程序实际执行 -h 成功；七个应用的真实传输验收由集成环境运行。未据此宣称七个独立应用容器已部署。
+
+本地运行证据在 .runtime/final-integration.log、.runtime/bookmark-replica-before-fix.log 和 .runtime/app-image-build.log；这些临时文件不提交 Git。仓库保留可重跑的测试与脚本。
 
 ## 交付边界
 

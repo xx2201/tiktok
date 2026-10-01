@@ -100,7 +100,11 @@ func Build(ctx context.Context, name string, c *conf.Config, logger log.Logger) 
 		case "video":
 			uc := biz.NewVideoUsecase(db, profiles, media, c.Media.MaxBytes, logger)
 			closers = append(closers, uc.Close)
-			video.RegisterVideoServiceServer(grpcServer, service.NewVideoService(uc, tokens))
+			// 收藏及其作者、点赞/关注信息都从主库读，避免副本延迟破坏即时可见。
+			primary := db.Primary()
+			bookmarkViews := biz.NewVideoUsecase(primary, biz.NewProfiles(primary, primary, media), media, c.Media.MaxBytes, logger)
+			bookmarks := biz.NewBookmarkUsecase(primary, bookmarkViews)
+			video.RegisterVideoServiceServer(grpcServer, service.NewVideoService(uc, bookmarks, tokens))
 		case "comment":
 			comment.RegisterCommentServiceServer(grpcServer, service.NewCommentService(biz.NewCommentUsecase(db, profiles), tokens))
 		case "favorite":

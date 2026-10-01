@@ -99,12 +99,21 @@ func TestConcurrentActionIdempotency(t *testing.T) {
 func TestRedisPendingSurvivesFailureAndNewAction(t *testing.T) {
 	db, _, actor, video := integrationData(t)
 	ctx := context.Background()
-	rdb := redis.NewClient(&redis.Options{Addr: "redis:6379", Password: "tiktokRedis"})
-	defer rdb.Close()
+	rdb := redis.NewClient(&redis.Options{Addr: "redis:6379", Password: "tiktokRedis", DB: 1})
+	t.Cleanup(func() {
+		if err := rdb.Close(); err != nil {
+			t.Error(err)
+		}
+	})
 	worker := &Actions{kind: "favorite", redis: rdb, db: db}
 	action := &biz.Action{Kind: "favorite", UserID: actor.ID, TargetID: video.ID, Type: 1, CreatedAt: 20}
 	key := fmt.Sprintf("tiktok:favorite:%d:%d:w", actor.ID, video.ID)
-	t.Cleanup(func() { _ = rdb.Del(ctx, key, key[:len(key)-1]+"r").Err() })
+	casKey := fmt.Sprintf("kratos-integration:cas:%d:%d", actor.ID, video.ID)
+	t.Cleanup(func() {
+		if err := rdb.Del(ctx, key, key[:len(key)-1]+"r", casKey).Err(); err != nil {
+			t.Error(err)
+		}
+	})
 	if err := worker.Cache(ctx, action); err != nil {
 		t.Fatal(err)
 	}
@@ -147,16 +156,16 @@ func TestRedisPendingSurvivesFailureAndNewAction(t *testing.T) {
 		t.Fatalf("recovery did not apply action: %v %v", liked, err)
 	}
 	old := "old-value"
-	if err := rdb.Set(ctx, key, old, 0).Err(); err != nil {
+	if err := rdb.Set(ctx, casKey, old, 0).Err(); err != nil {
 		t.Fatal(err)
 	}
-	if err := rdb.Set(ctx, key, "new-value", 0).Err(); err != nil {
+	if err := rdb.Set(ctx, casKey, "new-value", 0).Err(); err != nil {
 		t.Fatal(err)
 	}
-	if removed, err := removeApplied.Run(ctx, rdb, []string{key}, old).Int(); err != nil || removed != 0 {
+	if removed, err := removeApplied.Run(ctx, rdb, []string{casKey}, old).Int(); err != nil || removed != 0 {
 		t.Fatalf("new pending state removed: %d %v", removed, err)
 	}
-	if value, err := rdb.Get(ctx, key).Result(); err != nil || value != "new-value" {
+	if value, err := rdb.Get(ctx, casKey).Result(); err != nil || value != "new-value" {
 		t.Fatalf("CAS failed: %s %v", value, err)
 	}
 }

@@ -47,10 +47,34 @@ message PublishListResponse{
   string status_msg = 2;
   repeated Video video_list = 3;
 }
+// 私人收藏使用 token 中的用户身份，列表没有 user_id 参数。
+message BookmarkActionRequest {
+  string token = 1;
+  int64 video_id = 2;
+  int32 action_type = 3; // 1 收藏，2 取消
+}
+message BookmarkActionResponse {
+  int32 status_code = 1;
+  string status_msg = 2;
+}
+message BookmarkListRequest {
+  string token = 1;
+  int64 cursor = 2; // 收藏记录 ID，0 表示首屏
+  int32 limit = 3; // 0 默认20，最大50
+}
+message BookmarkListResponse {
+  int32 status_code = 1;
+  string status_msg = 2;
+  repeated Video video_list = 3;
+  int64 next_cursor = 4;
+  bool has_more = 5;
+}
 service VideoService {
   rpc Feed (FeedRequest) returns (FeedResponse);
   rpc PublishAction (PublishActionRequest) returns (PublishActionResponse);
   rpc PublishList (PublishListRequest) returns (PublishListResponse);
+  rpc BookmarkAction (BookmarkActionRequest) returns (BookmarkActionResponse);
+  rpc BookmarkList (BookmarkListRequest) returns (BookmarkListResponse);
 }
 
 

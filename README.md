@@ -42,13 +42,15 @@ service/biz/data 是每个服务进程内部的层次，并非三个额外服务
 | --- | --- | --- |
 | api | /douyin HTTP 接口及 /healthz | 8089 |
 | user | 注册、登录、用户信息 | 8085 |
-| video | Feed、发布、作品列表 | 8086 |
+| video | Feed、发布、作品列表、私人收藏 | 8086 |
 | comment | 评论创建、删除、列表 | 8081 |
 | favorite | 点赞、取消赞、喜欢列表 | 8082 |
 | relation | 关注、取关、关注/粉丝/朋友列表 | 8084 |
 | message | 私信、按客户端时间游标读取聊天 | 8083 |
 
 原有 16 个接口继续使用 /douyin 路径。除视频发布为 multipart 外，请求字段通过 query 传入；成功 JSON 保留数字 ID、布尔零值和空数组。错误通过 HTTP 状态码和 status_code=-1 返回。favorite 在原有协议中表示点赞。
+
+新增私人收藏接口 bookmark/action 与 bookmark/list，由 video 服务承接。[完整业务开发练习](docs/BUSINESS_BOOKMARK.md)记录了从用户问题、产品规则到技术设计、代码、验收及发布反馈的过程。
 
 ## 阅读顺序
 
@@ -79,7 +81,7 @@ Invoke-RestMethod "http://127.0.0.1:8089/healthz"
 - 停止应用：`pwsh -File "scripts/stop.ps1"`。Windows 使用终止进程，可能中断上传；Linux shutdown.sh 使用 SIGTERM。
 - 停止基础设施：`docker compose stop`，保留数据卷。
 - 已有环境须先备份数据库、对象和密钥。保留原 RSA 密钥并配置路径，换密钥后旧私信不能解密。
-- migrate 添加视频状态、动作序号表、关系唯一索引并扩展消息字段。历史重复关系需先审查处理，不能在生产启动时自动建表。
+- migrate 添加视频状态、动作序号表、关系唯一索引、私人收藏表并扩展消息字段。历史重复关系需先审查处理，不能在生产启动时自动建表。
 
 其他环境另存配置，通过 -config 指定；支持 ${ENV_NAME} 展开。副本仅使用 database.replicas 明确配置的地址。HTTP 支持配置证书和私钥。容器运行应用需另配容器内可达的依赖和服务注册地址，并挂载消息密钥。
 
@@ -92,7 +94,9 @@ go test -race ./...
 pwsh -File "scripts/integration.ps1"
 ```
 
-集成脚本使用独立 db_kratos_integration 数据库，运行七个应用与 MySQL、Redis、RabbitMQ、etcd、MinIO、FFmpeg，覆盖业务链、动作幂等和失败后保留待写状态。测试留下带唯一名称的数据和媒体桶，不操作生产数据库。
+集成脚本使用独立 db_kratos_integration 数据库、Redis DB 1 和 RabbitMQ kratos-integration vhost，运行七个应用与真实组件，覆盖业务链、动作幂等、失败保留待写状态和私人收藏。另用空的 db_kratos_replica_integration 模拟未追平的读源，验证收藏整条读取链走主库；这不是主从复制测试。测试留下带唯一名称的数据和媒体桶，不操作生产数据库。
+
+Docker CLI 未加入 PATH 时，可用 `pwsh -File "scripts/integration.ps1" -Docker "Docker可执行文件的绝对路径"` 指定；脚本临时加入同目录的凭据助手，结束后恢复 PATH。
 
 改 .proto 后运行 `pwsh -File "scripts/generate.ps1"`，需 protoc，两个固定版本 Go 插件安装在项目 .tools。Linux 使用 scripts/generate.sh。不要手改生成文件。
 

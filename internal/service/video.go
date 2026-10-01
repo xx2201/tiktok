@@ -9,12 +9,34 @@ import (
 
 type VideoService struct {
 	video.UnimplementedVideoServiceServer
-	uc     *biz.VideoUsecase
-	tokens *jwt.JWT
+	uc        *biz.VideoUsecase
+	bookmarks *biz.BookmarkUsecase
+	tokens    *jwt.JWT
 }
 
-func NewVideoService(uc *biz.VideoUsecase, tokens *jwt.JWT) *VideoService {
-	return &VideoService{uc: uc, tokens: tokens}
+func NewVideoService(uc *biz.VideoUsecase, bookmarks *biz.BookmarkUsecase, tokens *jwt.JWT) *VideoService {
+	return &VideoService{uc: uc, bookmarks: bookmarks, tokens: tokens}
+}
+func (s *VideoService) BookmarkAction(ctx context.Context, req *video.BookmarkActionRequest) (*video.BookmarkActionResponse, error) {
+	user, err := identity(s.tokens, req.Token, false)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.bookmarks.Action(ctx, user, req.VideoId, req.ActionType); err != nil {
+		return nil, err
+	}
+	return &video.BookmarkActionResponse{StatusMsg: "success"}, nil
+}
+func (s *VideoService) BookmarkList(ctx context.Context, req *video.BookmarkListRequest) (*video.BookmarkListResponse, error) {
+	user, err := identity(s.tokens, req.Token, false)
+	if err != nil {
+		return nil, err
+	}
+	rows, cursor, more, err := s.bookmarks.List(ctx, user, req.Cursor, int(req.Limit))
+	if err != nil {
+		return nil, err
+	}
+	return &video.BookmarkListResponse{StatusMsg: "success", VideoList: videoViews(rows), NextCursor: cursor, HasMore: more}, nil
 }
 func (s *VideoService) Feed(ctx context.Context, req *video.FeedRequest) (*video.FeedResponse, error) {
 	viewer, err := identity(s.tokens, req.Token, true)

@@ -42,6 +42,8 @@ func NewHTTP(c *conf.Config, clients Clients, logger log.Logger) *khttp.Server {
 	r.GET("/feed", bind(func() *video.FeedRequest { return new(video.FeedRequest) }, clients.Video.Feed))
 	r.GET("/publish/list/", bind(func() *video.PublishListRequest { return new(video.PublishListRequest) }, clients.Video.PublishList))
 	r.POST("/publish/action/", upload(clients.Video, c.Media.MaxBytes))
+	r.POST("/bookmark/action/", bind(func() *video.BookmarkActionRequest { return new(video.BookmarkActionRequest) }, clients.Video.BookmarkAction))
+	r.GET("/bookmark/list/", bind(func() *video.BookmarkListRequest { return new(video.BookmarkListRequest) }, clients.Video.BookmarkList))
 	r.POST("/favorite/action/", bind(func() *favorite.FavoriteActionRequest { return new(favorite.FavoriteActionRequest) }, clients.Favorite.FavoriteAction))
 	r.GET("/favorite/list/", bind(func() *favorite.FavoriteListRequest { return new(favorite.FavoriteListRequest) }, clients.Favorite.FavoriteList))
 	r.POST("/comment/action/", bind(func() *comment.CommentActionRequest { return new(comment.CommentActionRequest) }, clients.Comment.CommentAction))

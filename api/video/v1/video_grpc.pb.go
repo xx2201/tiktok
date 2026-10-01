@@ -19,9 +19,11 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	VideoService_Feed_FullMethodName          = "/video.v1.VideoService/Feed"
-	VideoService_PublishAction_FullMethodName = "/video.v1.VideoService/PublishAction"
-	VideoService_PublishList_FullMethodName   = "/video.v1.VideoService/PublishList"
+	VideoService_Feed_FullMethodName           = "/video.v1.VideoService/Feed"
+	VideoService_PublishAction_FullMethodName  = "/video.v1.VideoService/PublishAction"
+	VideoService_PublishList_FullMethodName    = "/video.v1.VideoService/PublishList"
+	VideoService_BookmarkAction_FullMethodName = "/video.v1.VideoService/BookmarkAction"
+	VideoService_BookmarkList_FullMethodName   = "/video.v1.VideoService/BookmarkList"
 )
 
 // VideoServiceClient is the client API for VideoService service.
@@ -31,6 +33,8 @@ type VideoServiceClient interface {
 	Feed(ctx context.Context, in *FeedRequest, opts ...grpc.CallOption) (*FeedResponse, error)
 	PublishAction(ctx context.Context, in *PublishActionRequest, opts ...grpc.CallOption) (*PublishActionResponse, error)
 	PublishList(ctx context.Context, in *PublishListRequest, opts ...grpc.CallOption) (*PublishListResponse, error)
+	BookmarkAction(ctx context.Context, in *BookmarkActionRequest, opts ...grpc.CallOption) (*BookmarkActionResponse, error)
+	BookmarkList(ctx context.Context, in *BookmarkListRequest, opts ...grpc.CallOption) (*BookmarkListResponse, error)
 }
 
 type videoServiceClient struct {
@@ -71,6 +75,26 @@ func (c *videoServiceClient) PublishList(ctx context.Context, in *PublishListReq
 	return out, nil
 }
 
+func (c *videoServiceClient) BookmarkAction(ctx context.Context, in *BookmarkActionRequest, opts ...grpc.CallOption) (*BookmarkActionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BookmarkActionResponse)
+	err := c.cc.Invoke(ctx, VideoService_BookmarkAction_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *videoServiceClient) BookmarkList(ctx context.Context, in *BookmarkListRequest, opts ...grpc.CallOption) (*BookmarkListResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BookmarkListResponse)
+	err := c.cc.Invoke(ctx, VideoService_BookmarkList_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // VideoServiceServer is the server API for VideoService service.
 // All implementations must embed UnimplementedVideoServiceServer
 // for forward compatibility.
@@ -78,6 +102,8 @@ type VideoServiceServer interface {
 	Feed(context.Context, *FeedRequest) (*FeedResponse, error)
 	PublishAction(context.Context, *PublishActionRequest) (*PublishActionResponse, error)
 	PublishList(context.Context, *PublishListRequest) (*PublishListResponse, error)
+	BookmarkAction(context.Context, *BookmarkActionRequest) (*BookmarkActionResponse, error)
+	BookmarkList(context.Context, *BookmarkListRequest) (*BookmarkListResponse, error)
 	mustEmbedUnimplementedVideoServiceServer()
 }
 
@@ -96,6 +122,12 @@ func (UnimplementedVideoServiceServer) PublishAction(context.Context, *PublishAc
 }
 func (UnimplementedVideoServiceServer) PublishList(context.Context, *PublishListRequest) (*PublishListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PublishList not implemented")
+}
+func (UnimplementedVideoServiceServer) BookmarkAction(context.Context, *BookmarkActionRequest) (*BookmarkActionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BookmarkAction not implemented")
+}
+func (UnimplementedVideoServiceServer) BookmarkList(context.Context, *BookmarkListRequest) (*BookmarkListResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BookmarkList not implemented")
 }
 func (UnimplementedVideoServiceServer) mustEmbedUnimplementedVideoServiceServer() {}
 func (UnimplementedVideoServiceServer) testEmbeddedByValue()                      {}
@@ -172,6 +204,42 @@ func _VideoService_PublishList_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _VideoService_BookmarkAction_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BookmarkActionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VideoServiceServer).BookmarkAction(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: VideoService_BookmarkAction_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VideoServiceServer).BookmarkAction(ctx, req.(*BookmarkActionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _VideoService_BookmarkList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BookmarkListRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VideoServiceServer).BookmarkList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: VideoService_BookmarkList_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VideoServiceServer).BookmarkList(ctx, req.(*BookmarkListRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // VideoService_ServiceDesc is the grpc.ServiceDesc for VideoService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -190,6 +258,14 @@ var VideoService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "PublishList",
 			Handler:    _VideoService_PublishList_Handler,
+		},
+		{
+			MethodName: "BookmarkAction",
+			Handler:    _VideoService_BookmarkAction_Handler,
+		},
+		{
+			MethodName: "BookmarkList",
+			Handler:    _VideoService_BookmarkList_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

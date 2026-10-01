@@ -43,7 +43,8 @@ func integrationConfig(t *testing.T) *conf.Config {
 		t.Fatal("TIKTOK_TEST_DSN is required")
 	}
 	c.Redis.Address = "redis:6379"
-	c.RabbitMQ.URL = "amqp://tiktokRMQ:tiktokRMQ@rabbitmq:5672/tiktokRMQ"
+	c.Redis.DB = 1
+	c.RabbitMQ.URL = "amqp://tiktokRMQ:tiktokRMQ@rabbitmq:5672/kratos-integration"
 	c.RabbitMQ.SyncInterval = 100 * time.Millisecond
 	c.Registry.Endpoints = []string{"etcd:2379"}
 	c.Media.Endpoint = "minio:9000"
@@ -263,6 +264,48 @@ func TestCompleteBusinessFlow(t *testing.T) {
 		return true
 	})
 	vid := fmt.Sprint(int64(video["id"].(float64)))
+	// 私人收藏：立即可见、重试幂等、身份隔离，不改变点赞计数。
+	for i := 0; i < 2; i++ {
+		code, body = call(t, "POST", base, "/bookmark/action/", url.Values{"token": {tokenB}, "video_id": {vid}, "action_type": {"1"}})
+		requireOK(t, code, body)
+	}
+	code, body = call(t, "GET", base, "/bookmark/list/", url.Values{"token": {tokenB}, "limit": {"1"}, "user_id": {a}})
+	requireOK(t, code, body)
+	bookmarks := body["video_list"].([]interface{})
+	if len(bookmarks) != 1 || bookmarks[0].(map[string]interface{})["id"] != video["id"] || bookmarks[0].(map[string]interface{})["favorite_count"] != float64(0) || body["has_more"] != false {
+		t.Fatalf("bookmark visibility or original counters: %#v", body)
+	}
+	code, body = call(t, "GET", base, "/bookmark/list/", url.Values{"token": {tokenA}, "user_id": {b}})
+	requireOK(t, code, body)
+	if len(body["video_list"].([]interface{})) != 0 {
+		t.Fatal("private bookmarks exposed")
+	}
+	code, body = call(t, "POST", base, "/bookmark/action/", url.Values{"token": {tokenA}, "video_id": {vid}, "action_type": {"1"}})
+	requireOK(t, code, body)
+	code, body = call(t, "GET", base, "/bookmark/list/", url.Values{"token": {tokenA}})
+	requireOK(t, code, body)
+	if len(body["video_list"].([]interface{})) != 1 {
+		t.Fatal("author could not bookmark own video")
+	}
+	code, body = call(t, "POST", base, "/bookmark/action/", url.Values{"token": {tokenA}, "video_id": {vid}, "action_type": {"2"}})
+	requireOK(t, code, body)
+	code, _ = call(t, "GET", base, "/bookmark/list/", nil)
+	if code != 401 {
+		t.Fatalf("anonymous bookmarks: %d", code)
+	}
+	for i := 0; i < 2; i++ {
+		code, body = call(t, "POST", base, "/bookmark/action/", url.Values{"token": {tokenB}, "video_id": {vid}, "action_type": {"2"}})
+		requireOK(t, code, body)
+	}
+	code, body = call(t, "GET", base, "/bookmark/list/", url.Values{"token": {tokenB}})
+	requireOK(t, code, body)
+	if len(body["video_list"].([]interface{})) != 0 {
+		t.Fatal("bookmark cancellation not immediately visible")
+	}
+	code, _ = call(t, "POST", base, "/bookmark/action/", url.Values{"token": {tokenB}, "video_id": {"999999999"}, "action_type": {"1"}})
+	if code != 404 {
+		t.Fatalf("nonexistent video bookmarked: %d", code)
+	}
 	author := video["author"].(map[string]interface{})
 	for _, mediaURL := range []string{video["play_url"].(string), video["cover_url"].(string), author["avatar"].(string), author["background_image"].(string)} {
 		res, err := http.Get(mediaURL)

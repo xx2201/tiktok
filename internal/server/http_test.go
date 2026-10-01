@@ -52,13 +52,13 @@ func (f *wireFixture) PublishAction(_ context.Context, req *video.PublishActionR
 	}
 	return &video.PublishActionResponse{StatusMsg: "success"}, nil
 }
-func testGateway(t *testing.T, limit float64, burst int, output io.Writer) (*httptest.Server, *wireFixture) {
+func testGateway(t *testing.T, limit float64, burst int, output io.Writer, videoServer video.VideoServiceServer) (*httptest.Server, *wireFixture) {
 	t.Helper()
 	logger := log.NewStdLogger(output)
 	rpc := NewGRPC("127.0.0.1:0", 4<<20, logger)
 	fixture := &wireFixture{}
 	user.RegisterUserServiceServer(rpc, fixture)
-	video.RegisterVideoServiceServer(rpc, fixture)
+	video.RegisterVideoServiceServer(rpc, videoServer)
 	comment.RegisterCommentServiceServer(rpc, fixture)
 	favorite.RegisterFavoriteServiceServer(rpc, fixture)
 	relation.RegisterRelationServiceServer(rpc, fixture)
@@ -113,7 +113,7 @@ func requestJSON(t *testing.T, client *http.Client, method, url string, body io.
 	return res.StatusCode, payload
 }
 func TestHTTPGRPCRoundTrip(t *testing.T) {
-	s, _ := testGateway(t, 1000, 1000, io.Discard)
+	s, _ := testGateway(t, 1000, 1000, io.Discard, &wireFixture{})
 	code, body := requestJSON(t, s.Client(), "POST", s.URL+"/douyin/user/register/?username=接手项目&password=secret", nil, "")
 	if code != 200 || body["status_code"] != float64(0) || body["user_id"] != float64(123) {
 		t.Fatalf("register: %d %#v", code, body)
@@ -147,7 +147,7 @@ func TestHTTPGRPCRoundTrip(t *testing.T) {
 	}
 }
 func TestEveryLegacyRouteReachesGRPC(t *testing.T) {
-	s, _ := testGateway(t, 1000, 1000, io.Discard)
+	s, _ := testGateway(t, 1000, 1000, io.Discard, &wireFixture{})
 	for _, route := range []struct{ method, path string }{
 		{"GET", "/publish/list/"}, {"POST", "/favorite/action/"}, {"GET", "/favorite/list/"}, {"POST", "/comment/action/"}, {"GET", "/comment/list/"}, {"POST", "/relation/action/"}, {"GET", "/relation/follow/list/"}, {"GET", "/relation/follower/list/"}, {"GET", "/relation/friend/list/"}, {"POST", "/message/action/"}, {"GET", "/message/chat/"},
 	} {
@@ -160,7 +160,7 @@ func TestEveryLegacyRouteReachesGRPC(t *testing.T) {
 	}
 }
 func TestRateLimitAndHealth(t *testing.T) {
-	s, _ := testGateway(t, .01, 1, io.Discard)
+	s, _ := testGateway(t, .01, 1, io.Discard, &wireFixture{})
 	_, _ = requestJSON(t, s.Client(), "GET", s.URL+"/douyin/feed", nil, "")
 	code, _ := requestJSON(t, s.Client(), "GET", s.URL+"/douyin/feed", nil, "")
 	if code != 429 {
@@ -173,7 +173,7 @@ func TestRateLimitAndHealth(t *testing.T) {
 }
 func TestRequestLogsHideCredentials(t *testing.T) {
 	var output bytes.Buffer
-	s, _ := testGateway(t, 1000, 1000, &output)
+	s, _ := testGateway(t, 1000, 1000, &output, &wireFixture{})
 	code, _ := requestJSON(t, s.Client(), "POST", s.URL+"/douyin/user/register/?username=接手项目&password=secret", nil, "")
 	if code != 200 {
 		t.Fatalf("registration failed: %d", code)
