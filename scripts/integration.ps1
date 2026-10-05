@@ -4,7 +4,8 @@ $projectRoot = Split-Path -Parent $PSScriptRoot
 $originalPath = $env:PATH
 Push-Location -LiteralPath $projectRoot
 try {
-    $Docker = (Get-Command -Name $Docker -CommandType Application -ErrorAction Stop).Source
+    # PATH 中可能存在多个 Docker 路径，只使用优先匹配的一个。
+    $Docker = (Get-Command -Name $Docker -CommandType Application -TotalCount 1 -ErrorAction Stop).Source
     # Docker 凭据助手通过 PATH 查找；只为本次脚本加入所选 CLI 的目录。
     $env:PATH = (Split-Path -Parent $Docker) + [System.IO.Path]::PathSeparator + $originalPath
     & $Docker compose up '-d' '--wait'
